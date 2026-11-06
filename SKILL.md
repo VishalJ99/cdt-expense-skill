@@ -5,68 +5,49 @@ description: AI4Health CDT conference approval requests and expense claims; appl
 
 # AI4Health CDT expenses
 
-The rules are in `references/ai4health-guidance.md`; rule numbers below refer to it. Apply them as written. A newer guidance edition or a later instruction from Britta in the student's mail overrides them; name the override in the reply.
+Rules are in `references/ai4health-guidance.md`; rule numbers below refer to it. A later instruction from Britta in the student's mail overrides them; say so in the reply.
 
-A claim is one E1 workbook, one ZIP of that workbook's receipts, and one email to **Britta Ross, AI4Health CDT administrator, `b.ross@imperial.ac.uk`**. She is the recipient for every approval request and claim. `SKILL` below means this skill's directory.
+Every approval request and claim goes to **Britta Ross, `b.ross@imperial.ac.uk`**. A claim is one E1 workbook, one ZIP of its receipts and one email. `SKILL` is this skill's directory.
 
-## First run (once)
+**Never send mail without the student's explicit OK.**
+
+## First run
 
 Personal files live in `~/.config/cdt-expense/`.
 
-1. **`me.json`.** If it is missing, ask the student in one message for their surname and the E1 personal details:
-   - title and first name;
-   - CID and date of birth;
-   - home address (up to 4 lines) and postcode;
-   - bank name, branch, sort code and account number.
-   Write it in the shape of `SKILL/examples/me.example.json` and `chmod 600` it. Never copy it elsewhere or send it anywhere.
-2. **`E1.xlsx`.** Download Imperial's [E1 for non-employees](https://www.imperial.ac.uk/media/imperial-college/administration-and-support-services/finance/public/E1-Non-employee-expense-form.xls) into that folder. Ask the student to open it in Microsoft Excel and *Save As → Excel Workbook* named `E1.xlsx` in the same folder. Excel must do the conversion.
-3. **Mail.** Run `surface auth status uni`. If it is not authenticated:
+1. **`me.json`.** If missing, ask the student in one message for their title, first name, surname, CID, date of birth, home address (up to 4 lines), postcode, bank name, branch, sort code and account number. Write it in the shape of `SKILL/examples/me.example.json` and `chmod 600` it. Never copy or send it anywhere.
+2. **`E1.xlsx`.** Download Imperial's [E1 for non-employees](https://www.imperial.ac.uk/media/imperial-college/administration-and-support-services/finance/public/E1-Non-employee-expense-form.xls) into that folder. Ask the student to open it in Microsoft Excel and *Save As → Excel Workbook* as `E1.xlsx` there.
+3. **Mail.** If `surface auth status uni` is not authenticated:
    ```sh
    npm install -g surface-cli
    surface skill install claude-code
    surface account add uni --provider outlook --email <student's Imperial email>
-   surface auth login uni                 # Chrome opens; the student signs in with Imperial SSO
+   surface auth login uni    # Chrome opens for Imperial sign-in
    ```
-   Anything else about Surface: follow the Surface skill.
-
-*Check:* both files exist, and `surface mail search --account uni --text "expenses" --limit 1` returns a result.
 
 ## Approval (before booking)
 
-Copy `SKILL/assets/AI4Health_conference_cost_estimate_template.xlsx` and fill it in with the student (rules 1–6, 9–13). Draft the request to Britta with `--draft`, as in claim step 7. Booking waits for approval.
+Copy `SKILL/assets/AI4Health_conference_cost_estimate_template.xlsx` and fill it in with the student (rules 1–6, 9–13). Show the student the request email and spreadsheet; on their OK, send it to Britta as in claim step 6. Nothing is booked before approval.
 
 ## Claim
 
-1. **Collect.** `surface mail search --account uni --text "<conference>" --limit 50`, then `surface mail read <message_ref>` and `surface mail thread get <thread_ref>`. Find the approval, earlier claims for this trip, and any later administrator instruction.
-   *Check:* you know what was approved and what's already claimed.
-2. **Reconcile.** A "submitted for payment" reply means that item is done. An estimate is not a claim (rule 5). Read every page of each receipt PDF, since one file can hold several receipts.
-   *Check:* every expense appears once across all claims, and the trip total is within £3,000 (rule 8).
-3. **Receipts and amounts.** Download with `surface attachment download <message_ref> <attachment_id>`. For each expense, record date, vendor, currency, amount and items.
-   - Itemised receipts only (rule 23). Leave out alcohol and tips (rules 14–15). Keep to eligible dates and nights (rule 9). Write a taxi justification (rule 10). Translate foreign receipts (rule 24).
-   - Foreign amounts: use the GBP card debit if the student has it, otherwise the ECB reference rate for the transaction date (`EXR.D.GBP.EUR.SP00.A` for EUR). Never invent a rate (rule 22).
-   - Ask for any missing facts once, as a single list.
-   *Check:* every row has an itemised receipt file and a GBP amount with a source.
-4. **`claim.json`.** Put it in a new folder `~/cdt-expenses/<Conference><Year>/`, in the shape of `SKILL/examples/claim.example.json`:
-   - `claim`: e.g. `MICCAI 2026`. It feeds the filenames and the email subject.
-   - `fx_source`.
-   - `rows`, each with: `date`, `section` (`travel` for Travel; omit for Subsistence/Hotels/Others, which includes registration, rule 20), `mode`/`from`/`to` for travel, and `type` as the exact Expense Type dropdown value (`CONFERENCE FEES`, `HOTEL / SUBSISTENCE`, ...). Then `description`, `vendor`, `amount`, `currency`, `gbp`, `receipt`, and where needed `translation` and `note` (justification or exclusions).
-   - More rows than the form holds means a second claim, not extra rows (rules 18, 26).
-   - Add `"sign": true` only when the student says to sign the declaration.
-   *Check:* `python3 SKILL/scripts/build_claim.py claim.json --dry-run` shows the right cells, receipt names and email.
-5. **Build.** `python3 SKILL/scripts/build_claim.py claim.json` writes `out/`:
-   - `<Surname>_E1_<claim>.xlsx`: the student's details and purpose (rule 19); cost centre and approvals cleared; analysis-code formulas intact (rule 21).
-   - `<Surname>_<claim>_receipts.zip`: one `<Surname>_YYYYMMDD_Vendor_12.34EUR.jpg` per receipt page, plus translations (rules 24–25, 27).
-   - `email.txt`.
-   Never re-save the workbook with any other tool.
-   *Check:* the printed ZIP listing has one JPG per receipt page.
-6. **Excel.** Open the workbook in Microsoft Excel. Confirm there is no repair prompt, the total matches `email.txt`, the Analysis Code cells show numbers, and the details are right. LibreOffice shows `#N/A` there, so only Excel counts.
-   *Check:* report what Excel showed.
-7. **Draft** to Britta, using the subject and body from `email.txt`; add a taxi justification or other context in the student's words if needed.
+1. **Collect.** `surface mail search --account uni --text "<conference>" --limit 50`, then `surface mail read <message_ref>` / `surface mail thread get <thread_ref>`. Find the approval, earlier claims for this trip and any later instruction from Britta. A "submitted for payment" reply means those items are done; an approved estimate is not a claim (rule 5). Each expense is claimed once, and the trip total stays within £3,000 (rule 8).
+2. **Receipts.** `surface attachment download <message_ref> <attachment_id>`. Read every page, since one PDF can hold several receipts. For each expense record date, vendor, currency, amount and items:
+   - itemised receipts only (rule 23); no alcohol or tips (rules 14–15); eligible dates and nights only (rule 9); justify any taxi (rule 10); translate foreign receipts (rule 24);
+   - GBP amount: the card debit if the student has it, else the ECB reference rate for the transaction date (`EXR.D.GBP.EUR.SP00.A` for EUR). Never invent a rate (rule 22).
+
+   Ask for missing facts once, as one list.
+3. **`claim.json`** in a new folder `~/cdt-expenses/<Conference><Year>/`, shaped like `SKILL/examples/claim.example.json`:
+   - `claim`: e.g. `MICCAI 2026`; it names the files and the email subject. `fx_source` if any amount is foreign.
+   - `rows`: `date`, `section: "travel"` with `mode`/`from`/`to` for travel (omit `section` for everything else, including registration, rule 20), `type` as the exact Expense Type dropdown value (`CONFERENCE FEES`, `HOTEL / SUBSISTENCE`, ...), `description`, `vendor`, `amount`, `currency`, `gbp`, `receipt`, and where needed `translation` and `note` (justification or exclusions).
+   - More rows than the form holds means a second claim (rules 18, 26).
+   - `"sign": true` only if the student says to sign the declaration.
+4. **Build.** `python3 SKILL/scripts/build_claim.py claim.json` writes `out/`: `<Surname>_E1_<claim>.xlsx`, `<Surname>_<claim>_receipts.zip` (one JPG per receipt page, plus translations) and `email.txt`. Don't re-save the workbook with any tool but Excel. After any change, rebuild everything.
+5. **Excel.** The student opens the workbook in Microsoft Excel: no repair prompt, total matches `email.txt`, Analysis Code cells show numbers, details right. (LibreOffice shows `#N/A` there.)
+6. **Send.** Show the student `email.txt` (add any context in their words) and the ZIP listing. Only on their explicit OK:
    ```sh
    surface mail send --account uni --to b.ross@imperial.ac.uk --subject "<subject>" --body "<body>" \
-     --attach out/<workbook>.xlsx --attach out/<receipts>.zip --draft
+     --attach out/<workbook>.xlsx --attach out/<receipts>.zip
    ```
-   *Check:* read the draft back; the attachments and body match `out/`. Surface 0.4.6 doesn't verify read-back itself.
-8. **Send** only when the student explicitly approves, using the same command without `--draft`. After any change, rebuild and redraft; never patch one file alone.
-   *Check:* find it in Sent with `surface mail search --account uni --mailbox "Sent Items" --subject "<subject>"`, download the attachments, and confirm their SHA-256 matches `out/`.
-9. **After the trip.** Remind the student to email the CDT a short conference report (rule 28) and to cite the UKRI grant (rule 29).
+   Then confirm it is in Sent Items: `surface mail search --account uni --mailbox "Sent Items" --subject "<subject>"`.
+7. **After the trip.** Remind the student to email the CDT a short conference report (rule 28) and to cite the UKRI grant (rule 29).

@@ -7,11 +7,9 @@ Sources, paraphrased:
 - **[A, month year]** written instructions from Britta Ross, AI4Health CDT administrator (b.ross@imperial.ac.uk), when returning or correcting claims.
 - **[P]** practice from accepted claims; not written down.
 
-The guidance is reissued each academic year. A newer edition, or a later instruction from Britta, overrides this file.
-
 ## Before you book: approval
 
-1. Agree the conference with your supervisors first, then ask Britta Ross (CDT administrator, b.ross@imperial.ac.uk) for approval before booking anything. [G, Principles and responsibilities]
+1. Agree the conference with your supervisors first, then ask Britta Ross for approval before booking anything. [G, Principles and responsibilities]
 2. Start early: at least 3 months ahead for ICML, MICCAI and NeurIPS. [G, Principles and responsibilities]
 3. Funding normally covers about one leading global AI conference a year. Your first needs no contribution; after that you need an accepted paper or poster (main conference or workshop). A relevant summer school may count; ask the CDT. If acceptance is still pending, any approval is conditional and lapses automatically if the paper isn't accepted. [G, Overview; Principles and responsibilities]
 4. Request approval with the cost-estimate spreadsheet (`assets/AI4Health_conference_cost_estimate_template.xlsx`). Give the conference name, city, website, dates, travel dates, eligible nights and your contribution (say if you are first author, and link the paper). Include an FX rate if costs are in a foreign currency, a screenshot of hotel search results with two comparison hotels, and the hotel's refund policy (non-refundable bookings may only be reimbursed after the trip). [E]

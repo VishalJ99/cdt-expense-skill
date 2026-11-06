@@ -62,7 +62,6 @@ def fake_pdf(path, pages=1):
     Path(path).write_bytes(out)
 
 
-@unittest.skipUnless(shutil.which("pdftoppm"), "needs poppler's pdftoppm")
 class BuildClaimTest(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -152,11 +151,10 @@ class BuildClaimTest(unittest.TestCase):
 
 class PlanTest(unittest.TestCase):
     def test_too_many_rows_says_split(self):
-        layout = json.loads((ROOT / "layouts" / "imperial-e1.json").read_text())
-        row = {"date": "2026-01-01", "type": "X", "vendor": "V", "amount": "1", "gbp": 1}
+        row = {"date": "2026-01-01", "type": "X", "vendor": "V", "amount": "1", "currency": "GBP", "gbp": 1}
+        me = json.loads((ROOT / "examples" / "me.example.json").read_text())
         with self.assertRaises(SystemExit) as e:
-            me = json.loads((ROOT / "examples" / "me.example.json").read_text())
-            build_claim.plan_cells({"claim": "c", "rows": [row] * 8}, me, layout)
+            build_claim.plan_cells({"claim": "c", "rows": [row] * 8}, me)
         self.assertIn("second claim", str(e.exception))
 
 
