@@ -5,7 +5,7 @@ description: AI4Health CDT conference approval requests and expense claims; appl
 
 # AI4Health CDT expenses
 
-The rules are in `references/ai4health-guidance.md`; rule numbers below refer to it. Apply them as written. Only a newer guidance edition or a later instruction from the administrator in the student's mail overrides them; name the override in your reply.
+The rules are in `references/ai4health-guidance.md`; rule numbers below refer to it. Apply them as written. A newer guidance edition or a later instruction from Britta in the student's mail overrides them; name the override in the reply.
 
 A claim is one E1 workbook, one ZIP of that workbook's receipts, and one email to **Britta Ross, AI4Health CDT administrator, `b.ross@imperial.ac.uk`**. She is the recipient for every approval request and claim. `SKILL` below means this skill's directory.
 
@@ -23,7 +23,7 @@ Personal files live in `~/.config/cdt-expense/`.
 3. **Mail.** Run `surface auth status uni`. If it is not authenticated:
    ```sh
    npm install -g surface-cli
-   surface skill install claude-code      # codex | all; on OpenClaw: openclaw skills install surface-cli
+   surface skill install claude-code
    surface account add uni --provider outlook --email <student's Imperial email>
    surface auth login uni                 # Chrome opens; the student signs in with Imperial SSO
    ```

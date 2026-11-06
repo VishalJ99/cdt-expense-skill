@@ -4,15 +4,14 @@
     python3 build_claim.py claim.json            # writes ./out next to claim.json
     python3 build_claim.py claim.json --dry-run  # prints the plan and the email, writes nothing
 
-Reads your details from ~/.config/cdt-expense/me.json and the blank E1 from
-~/.config/cdt-expense/E1.xlsx (see README, first run).
+Reads the claimant's details from ~/.config/cdt-expense/me.json and the blank E1
+from ~/.config/cdt-expense/E1.xlsx.
 
 The workbook is edited at XML level so the form's formulas, styles, validation and
 namespace declarations survive. Only mapped cells change; every cached formula
 result is dropped and Excel recalculates on open.
 
-Standard library only. Receipts need `pdftoppm` (poppler) for PDFs and `sips`
-(macOS) or Pillow for non-JPG images.
+Standard library only, plus `pdftoppm` (poppler) for PDF receipts.
 """
 import argparse
 import datetime as dt

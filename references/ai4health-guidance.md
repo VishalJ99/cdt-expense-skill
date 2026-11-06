@@ -7,7 +7,7 @@ Sources, paraphrased:
 - **[A, month year]** written instructions from Britta Ross, AI4Health CDT administrator (b.ross@imperial.ac.uk), when returning or correcting claims.
 - **[P]** practice from accepted claims; not written down.
 
-The guidance is reissued each academic year. A newer edition, or a later instruction from the administrator, overrides this file.
+The guidance is reissued each academic year. A newer edition, or a later instruction from Britta, overrides this file.
 
 ## Before you book: approval
 
