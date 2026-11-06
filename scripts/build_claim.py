@@ -185,6 +185,9 @@ def force_recalc(xml):
 
 
 def build_workbook(template, out, edits, sheet):
+    if not zipfile.is_zipfile(template):
+        raise SystemExit("Template is not an .xlsx. Open the .xls in Microsoft Excel and "
+                         "Save As 'Excel Workbook (.xlsx)', then pass that file.")
     with zipfile.ZipFile(template) as zin, zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zout:
         names = zin.namelist()
         if sheet not in names:

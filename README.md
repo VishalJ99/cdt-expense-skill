@@ -1,12 +1,15 @@
 # cdt-expense-skill
 
-An agent skill (Claude Code, Codex, OpenClaw or any Agent Skills runner) for UK doctoral training centre (CDT) students who claim conference and travel expenses on Imperial College's **E1 Excel form**. It covers the whole job:
+An agent skill (Claude Code, Codex, OpenClaw or any Agent Skills runner) for students of Imperial's **UKRI AI4Health CDTs**: the CDT in AI for Healthcare and the AI CDT in Digital Healthcare. It handles conference approval requests and expense claims end to end, with the CDT's rules built in, so nobody has to dig out the guidance again.
 
-1. finds the claims guidance and your administrator's latest instructions in your mail
-2. downloads the receipts
-3. fills a copy of the original E1 workbook without breaking it
-4. renders receipts to JPG and names them `Surname_YYYYMMDD_Vendor_12.34EUR.jpg` in one ZIP per claim
-5. drafts the email, checks it, and sends it only after you approve
+**What's built in**
+
+- `references/ai4health-guidance.md`: the 2025-26 AI4Health conference approval and expense guidance as 29 sourced rules. It covers approval, the £3,000 cap, eligible dates, taxis, no alcohol, itemised and translated receipts, JPGs in one ZIP per claim, surname-first filenames without dashes, purpose-of-claim wording, leaving cost centres to the administrator, FX, the post-trip report and UKRI acknowledgement. Each rule cites the guidance section or the administrator instruction it comes from.
+- `assets/AI4Health_conference_cost_estimate_template.xlsx`: the CDT's blank cost-estimate sheet for approval requests.
+- `scripts/build_claim.py`: fills Imperial's E1 form without breaking it, and packs receipts as `Surname_YYYYMMDD_Vendor_12.34EUR.jpg` in one ZIP.
+- `SKILL.md`: the agent's procedure. It finds the trip's mail, reconciles, applies the rules, builds, checks in Excel, drafts, and sends only after you approve.
+
+The guidance is reissued each year. If the CDT sends a newer edition, or the administrator tells you something different, that wins over the bundled file. PRs updating `references/ai4health-guidance.md` are welcome.
 
 ## Install
 
@@ -18,15 +21,16 @@ git clone https://github.com/VishalJ99/cdt-expense-skill ~/.claude/skills/cdt-ex
 
 Other agents: clone it into that agent's skills directory (e.g. `~/.codex/skills/cdt-expense`), or use `npx skills add VishalJ99/cdt-expense-skill`.
 
-Then ask your agent something like *"claim my conference expenses from the receipts in this thread"*.
+Then ask your agent something like *"claim my MICCAI expenses from the receipts in my mail"* or *"help me request approval for ICML"*.
 
 ## Requirements
 
 - Python 3.9+ (standard library only)
 - [poppler](https://poppler.freedesktop.org/) for `pdftoppm`: `brew install poppler` or `apt install poppler-utils`
 - [Surface CLI](https://github.com/VishalJ99/surface-cli) to read and send Outlook or Gmail mail: `npm install -g surface-cli`. Any mail CLI with search, attachment download and send-with-attachments will also work.
-- Microsoft Excel, optional but recommended for the final check
-- **The E1 template itself is not included.** Get the current `.xlsx` from your CDT administrator or Imperial's Finance forms page.
+- Microsoft Excel, for the Save As step and the final check
+- **The E1 form is not bundled.** Use the `.xlsx` the CDT administrator last sent you. Otherwise download Imperial's [E1 for non-employees](https://www.imperial.ac.uk/media/imperial-college/administration-and-support-services/finance/public/E1-Non-employee-expense-form.xls) from the [Finance expenses page](https://www.imperial.ac.uk/finance/financial-services/expenses/), open it in Excel and *Save As .xlsx*.
+- The administrator's email address, entered once at setup. The repo contains no staff names or addresses.
 
 ## The builder on its own
 
