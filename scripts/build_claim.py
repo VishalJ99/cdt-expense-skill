@@ -31,7 +31,8 @@ HERE = Path(__file__).resolve().parent
 LAYOUT = HERE.parent / "layouts" / "imperial-e1.json"
 CONFIG = Path(os.environ.get("CDT_EXPENSE_HOME", "~/.config/cdt-expense")).expanduser()
 PURPOSE = "{surname}- AI4Health CDT-Conference expenses"  # guidance, How to claim expenses
-ME_FIELDS = ["title", "first_name", "surname", "imperial_email", "admin_email", "cid", "date_of_birth",
+ADMIN = "Britta Ross <b.ross@imperial.ac.uk>"  # AI4Health CDT administrator; every claim goes to her
+ME_FIELDS = ["title", "first_name", "surname", "cid", "date_of_birth",
              "address", "postcode", "bank_name", "bank_branch", "sort_code", "account_number"]
 JUNK = re.compile(r"(^|/)(__MACOSX|\.DS_Store|\._[^/]*)($|/)")
 
@@ -300,8 +301,8 @@ def email(me, claim, xlsx, zip_name):
     total = sum(float(r["gbp"]) for r in rows)
     fx = [r for r in rows if r.get("currency", "GBP") != "GBP"]
     notes = [r["note"] for r in rows if r.get("note")]
-    out = [f"To: {me['admin_email']}", f"Subject: {claim['claim']} expense claim", "",
-           "Hello,", "",
+    out = [f"To: {ADMIN}", f"Subject: {claim['claim']} expense claim", "",
+           "Dear Britta,", "",
            f"Please find attached my expense claim for {claim['claim']}: the E1 form ({xlsx}) "
            f"and a ZIP of the matching receipts ({zip_name}).", "",
            f"Total claimed: £{total:.2f}"]

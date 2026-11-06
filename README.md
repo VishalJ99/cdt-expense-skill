@@ -1,6 +1,6 @@
 # cdt-expense-skill
 
-Your agent handles AI4Health CDT conference approvals and expense claims end to end: it follows the CDT's rules, fills the E1 form, builds the receipts ZIP, drafts the email to the CDT administrator, and sends it once you approve.
+Your agent handles AI4Health CDT conference approvals and expense claims end to end: it follows the CDT's rules, fills the E1 form, builds the receipts ZIP, drafts the email to Britta Ross (AI4Health CDT administrator, b.ross@imperial.ac.uk), and sends it once you approve.
 
 ## Install
 
@@ -10,16 +10,12 @@ git clone https://github.com/VishalJ99/cdt-expense-skill ~/.claude/skills/cdt-ex
 
 ## First run
 
-Your agent asks once for:
-
-- your surname and the personal details the E1 needs: name, CID, date of birth, address and bank details;
-- your Imperial email, used to sign in to your mail;
-- the CDT administrator's email. It isn't on any public Imperial page (the public ai4health@ address is for general enquiries), so it isn't in this repo. You'll find it on the CDT's conference-guidance email.
+Your agent asks once for your surname and the personal details the E1 needs: name, CID, date of birth, address and bank details.
 
 These are saved to `~/.config/cdt-expense/me.json` on your machine only. The agent also:
 
 - downloads the E1 for you to save once as `.xlsx` in Excel;
-- installs the [Surface](https://github.com/VishalJ99/surface-cli) mail CLI and signs you in through the normal Imperial login in Chrome.
+- installs the [Surface](https://github.com/VishalJ99/surface-cli) mail CLI and signs you in to your Imperial mail through the normal Imperial login in Chrome.
 
 You need Python 3, Node, Microsoft Excel and poppler (`brew install poppler`).
 

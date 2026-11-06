@@ -7,26 +7,24 @@ description: AI4Health CDT conference approval requests and expense claims; appl
 
 The rules are in `references/ai4health-guidance.md`; rule numbers below refer to it. Apply them as written. Only a newer guidance edition or a later instruction from the administrator in the student's mail overrides them; name the override in your reply.
 
-A claim is one E1 workbook, one ZIP of that workbook's receipts, and one email to the CDT administrator. `SKILL` below means this skill's directory.
+A claim is one E1 workbook, one ZIP of that workbook's receipts, and one email to **Britta Ross, AI4Health CDT administrator, `b.ross@imperial.ac.uk`**. She is the recipient for every approval request and claim. `SKILL` below means this skill's directory.
 
 ## First run (once)
 
 Personal files live in `~/.config/cdt-expense/`.
 
-1. **`me.json`.** If it is missing, ask the student in one message for:
-   - title, first name and surname;
-   - Imperial email;
+1. **`me.json`.** If it is missing, ask the student in one message for their surname and the E1 personal details:
+   - title and first name;
    - CID and date of birth;
    - home address (up to 4 lines) and postcode;
-   - bank name, branch, sort code and account number;
-   - the CDT administrator's email. It's on the CDT's conference-guidance email and isn't published, so it isn't in the repo.
+   - bank name, branch, sort code and account number.
    Write it in the shape of `SKILL/examples/me.example.json` and `chmod 600` it. Never copy it elsewhere or send it anywhere.
 2. **`E1.xlsx`.** Download Imperial's [E1 for non-employees](https://www.imperial.ac.uk/media/imperial-college/administration-and-support-services/finance/public/E1-Non-employee-expense-form.xls) into that folder. Ask the student to open it in Microsoft Excel and *Save As → Excel Workbook* named `E1.xlsx` in the same folder. Excel must do the conversion.
 3. **Mail.** Run `surface auth status uni`. If it is not authenticated:
    ```sh
    npm install -g surface-cli
    surface skill install claude-code      # codex | all; on OpenClaw: openclaw skills install surface-cli
-   surface account add uni --provider outlook --email <imperial_email from me.json>
+   surface account add uni --provider outlook --email <student's Imperial email>
    surface auth login uni                 # Chrome opens; the student signs in with Imperial SSO
    ```
    Anything else about Surface: follow the Surface skill.
@@ -35,7 +33,7 @@ Personal files live in `~/.config/cdt-expense/`.
 
 ## Approval (before booking)
 
-Copy `SKILL/assets/AI4Health_conference_cost_estimate_template.xlsx` and fill it in with the student (rules 1–6, 9–13). Draft the request to `admin_email` with `--draft`, as in claim step 7. Booking waits for approval.
+Copy `SKILL/assets/AI4Health_conference_cost_estimate_template.xlsx` and fill it in with the student (rules 1–6, 9–13). Draft the request to Britta with `--draft`, as in claim step 7. Booking waits for approval.
 
 ## Claim
 
@@ -63,9 +61,9 @@ Copy `SKILL/assets/AI4Health_conference_cost_estimate_template.xlsx` and fill it
    *Check:* the printed ZIP listing has one JPG per receipt page.
 6. **Excel.** Open the workbook in Microsoft Excel. Confirm there is no repair prompt, the total matches `email.txt`, the Analysis Code cells show numbers, and the details are right. LibreOffice shows `#N/A` there, so only Excel counts.
    *Check:* report what Excel showed.
-7. **Draft.** Use the To, Subject and body from `email.txt`; add a taxi justification or other context in the student's words if needed.
+7. **Draft** to Britta, using the subject and body from `email.txt`; add a taxi justification or other context in the student's words if needed.
    ```sh
-   surface mail send --account uni --to <admin_email> --subject "<subject>" --body "<body>" \
+   surface mail send --account uni --to b.ross@imperial.ac.uk --subject "<subject>" --body "<body>" \
      --attach out/<workbook>.xlsx --attach out/<receipts>.zip --draft
    ```
    *Check:* read the draft back; the attachments and body match `out/`. Surface 0.4.6 doesn't verify read-back itself.

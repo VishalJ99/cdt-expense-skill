@@ -141,7 +141,8 @@ class BuildClaimTest(unittest.TestCase):
 
     def test_email(self):
         text = (self.out / "email.txt").read_text()
-        self.assertIn("To: cdt-admin@example.ac.uk", text)
+        self.assertIn("To: Britta Ross <b.ross@imperial.ac.uk>", text)
+        self.assertIn("Dear Britta,", text)
         self.assertIn("Subject: ExampleConf 2026 post trip expense claim", text)
         self.assertIn("Total claimed: £208.10", text)
         self.assertIn("EUR 21.80 = £18.70", text)
