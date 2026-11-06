@@ -27,7 +27,7 @@ Then ask your agent something like *"claim my MICCAI expenses from the receipts 
 
 - Python 3.9+ (standard library only)
 - [poppler](https://poppler.freedesktop.org/) for `pdftoppm`: `brew install poppler` or `apt install poppler-utils`
-- [Surface CLI](https://github.com/VishalJ99/surface-cli) to read and send Outlook or Gmail mail: `npm install -g surface-cli`. Any mail CLI with search, attachment download and send-with-attachments will also work.
+- [Surface CLI](https://github.com/VishalJ99/surface-cli) for Imperial Outlook mail. Install it with `npm install -g surface-cli` and `surface skill install claude-code` (or `codex` / `all`; on OpenClaw, `openclaw skills install surface-cli`). Then run `surface account add uni --provider outlook --email <you>@imperial.ac.uk` and `surface auth login uni`, which opens Chrome for the usual Imperial sign-in (no Azure or app passwords). The skill's Step 0 checks this and walks your agent through it. See Surface's README for more.
 - Microsoft Excel, for the Save As step and the final check
 - **The E1 form is not bundled.** Use the `.xlsx` the CDT administrator last sent you. Otherwise download Imperial's [E1 for non-employees](https://www.imperial.ac.uk/media/imperial-college/administration-and-support-services/finance/public/E1-Non-employee-expense-form.xls) from the [Finance expenses page](https://www.imperial.ac.uk/finance/financial-services/expenses/), open it in Excel and *Save As .xlsx*.
 - The administrator's email address, entered once at setup. The repo contains no staff names or addresses.

@@ -14,11 +14,27 @@ One claim = one E1 workbook + one ZIP of that workbook's receipts + one email.
 Record in agent memory or a local note:
 
 - `SURNAME`, and `ADMIN_EMAIL`, the address of the AI4Health CDT administrator / programme manager (from the guidance email or the CDT team).
-- `ACCOUNT`: the Surface account name for the student's Imperial mail. [Surface](https://github.com/VishalJ99/surface-cli): `npm install -g surface-cli`. Any mail CLI with search, attachment download and send-with-attachments works; adapt the commands below.
+- `ACCOUNT`: the Surface account name for the student's Imperial mail (`uni` if you follow Step 0).
 - **E1 template.** Use the `.xlsx` the administrator last sent you if there is one. Otherwise download Imperial's [E1 for non-employees](https://www.imperial.ac.uk/media/imperial-college/administration-and-support-services/finance/public/E1-Non-employee-expense-form.xls) (listed on https://www.imperial.ac.uk/finance/financial-services/expenses/). It is `.xls`, so open it in Microsoft Excel and *Save As → Excel Workbook (.xlsx)*. Do not convert it with LibreOffice or Python; the form must stay original.
 - `python3`, `pdftoppm` (poppler) and Microsoft Excel.
 
 Paths below are relative to this skill's directory.
+
+## Step 0: mail setup (once)
+
+This skill reads and sends mail with [Surface](https://github.com/VishalJ99/surface-cli).
+1. Run `surface auth status uni` (or the student's `ACCOUNT`). If it reports the account as authenticated, skip to the claim steps.
+2. Otherwise:
+   ```sh
+   npm install -g surface-cli
+   surface skill install claude-code      # or codex | all; on OpenClaw: openclaw skills install surface-cli
+   surface account add uni --provider outlook --email <you>@imperial.ac.uk
+   surface auth login uni                 # opens Chrome: the student completes normal Imperial SSO
+   ```
+   Outlook uses the browser SSO session, so no Azure app registration or app password is needed. Wait for the student to finish signing in, then rerun `surface auth status uni`.
+3. For anything else (sender identity, `surface auth check`, re-login, Gmail/IMAP), follow the installed Surface skill or the Surface README's Setup section; don't improvise.
+
+*Check:* `surface auth status uni` shows it authenticated, and `surface mail search --account uni --text "expenses" --limit 1` returns a result.
 
 ## Before the trip (approval)
 
@@ -61,7 +77,7 @@ If the student is planning a trip rather than claiming, fill in a copy of `asset
 7. **Draft.** Write the email in the student's voice: purpose, total, one line per foreign amount with rate and source, any taxi justification, and what was excluded (alcohol, tips). Mention only attachments that are actually included. Save it as a draft:
    `surface mail reply <message_ref> --body "$(cat body.txt)" --attach out/<workbook>.xlsx --attach out/<receipts>.zip --draft`
    (or `surface mail send --account ACCOUNT --to ADMIN_EMAIL --subject "<Conference> <Year> expense claim" ... --draft`).
-   *Check:* read the draft back. The attachment names and body should match the plan.
+   *Check:* read the draft back. The attachment names and body should match the plan. Do this yourself even if Surface verifies on send: the npm release (0.4.6) doesn't yet check that the sent message reads back exactly.
 
 8. **Send only on the student's explicit approval.** Approving a self-test is not approval to send to the administrator. Run the same command without `--draft`. After any change, rebuild the workbook and ZIP together and redraft; never patch one file alone.
    *Check:* find the message in Sent (`surface mail search --account ACCOUNT --mailbox "<sent folder>" --subject "..."`), download its attachments, and confirm their SHA-256 matches `out/`.
