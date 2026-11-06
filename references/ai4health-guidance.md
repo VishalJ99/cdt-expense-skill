@@ -1,15 +1,13 @@
 # AI4Health CDT: conference approval and expense-claim rules
 
-Applies to the UKRI Centre for Doctoral Training in AI for Healthcare and the UKRI AI Centre for Doctoral Training in Digital Healthcare at Imperial College London (together, "AI4Health").
-
-Sources, paraphrased (not verbatim):
+Sources, paraphrased:
 
 - **[G]** *Conference and travel costs – Eligibility & Approval guidance*, AI4Health, **2025-26 edition** (last revised October 2025), sent to all cohorts in January 2026. Section names follow the PDF.
 - **[E]** *AI4Health CDT Conf Cost estimates for approval* spreadsheet, 2025-26, in `assets/`.
-- **[A, month year]** repeated written instructions from the AI4Health CDT administrator / programme manager to students when returning or correcting claims.
-- **[P]** practice from accepted claims, not a written rule; follow it unless told otherwise.
+- **[A, month year]** written instructions from the CDT administrator (Centre Manager) when returning or correcting claims.
+- **[P]** practice from accepted claims; not written down.
 
-**Check for a newer edition.** The guidance is reissued each academic year. If the CDT has sent a newer guidance PDF, or the administrator's latest email to you says something different, that wins over this file. Note the difference in your reply.
+The guidance is reissued each academic year. A newer edition, or a later instruction from the administrator, overrides this file.
 
 ## Before you book: approval
 
@@ -18,7 +16,7 @@ Sources, paraphrased (not verbatim):
 3. Funding normally covers about one leading global AI conference a year. Your first needs no contribution; after that you need an accepted paper or poster (main conference or workshop). A relevant summer school may count; ask the CDT. If acceptance is still pending, any approval is conditional and lapses automatically if the paper isn't accepted. [G, Overview; Principles and responsibilities]
 4. Request approval with the cost-estimate spreadsheet (`assets/AI4Health_conference_cost_estimate_template.xlsx`). Give the conference name, city, website, dates, travel dates, eligible nights and your contribution (say if you are first author, and link the paper). Include an FX rate if costs are in a foreign currency, a screenshot of hotel search results with two comparison hotels, and the hotel's refund policy (non-refundable bookings may only be reimbursed after the trip). [E]
 5. An approved cost estimate is not a claim, and approval does not prove any amount was spent. [P]
-6. Check visa needs yourself, and register every trip with Imperial's travel insurance. The insurance covers College business only, not holidays. [G, Principles and responsibilities; Travel Insurance]
+6. Visa checks are the student's responsibility. Register every trip with Imperial's travel insurance. The insurance covers College business only, not holidays. [G, Principles and responsibilities; Travel Insurance]
 
 ## What is claimable
 

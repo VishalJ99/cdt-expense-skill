@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
-"""Build one expense claim: a filled copy of the E1 workbook plus a receipts ZIP.
+"""Build one AI4Health CDT expense claim: the filled E1 workbook, the receipts ZIP and the email text.
 
-    python3 build_claim.py --template E1.xlsx --claim claim.json --out-dir out/
-    python3 build_claim.py --template E1.xlsx --claim claim.json --dry-run
+    python3 build_claim.py claim.json            # writes ./out next to claim.json
+    python3 build_claim.py claim.json --dry-run  # prints the plan and the email, writes nothing
 
-The workbook is edited at XML level so the template's formulas, styles, data
-validation and namespace declarations survive untouched. Only the cells named in
-the layout file are changed. Every formula cache is dropped and Excel is told to
-recalculate on open, so no total from a previous claim can survive.
+Reads your details from ~/.config/cdt-expense/me.json and the blank E1 from
+~/.config/cdt-expense/E1.xlsx (see README, first run).
 
-Standard library only. Receipts need `pdftoppm` (poppler) for PDFs and either
-`sips` (macOS) or Pillow for non-JPG images.
+The workbook is edited at XML level so the form's formulas, styles, validation and
+namespace declarations survive. Only mapped cells change; every cached formula
+result is dropped and Excel recalculates on open.
+
+Standard library only. Receipts need `pdftoppm` (poppler) for PDFs and `sips`
+(macOS) or Pillow for non-JPG images.
 """
 import argparse
 import datetime as dt
 import html
+import os
 import json
 import re
 import shutil
@@ -25,7 +28,11 @@ import zipfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DEFAULT_LAYOUT = HERE.parent / "layouts" / "imperial-e1.json"
+LAYOUT = HERE.parent / "layouts" / "imperial-e1.json"
+CONFIG = Path(os.environ.get("CDT_EXPENSE_HOME", "~/.config/cdt-expense")).expanduser()
+PURPOSE = "{surname}- AI4Health CDT-Conference expenses"  # guidance, How to claim expenses
+ME_FIELDS = ["title", "first_name", "surname", "imperial_email", "admin_email", "cid", "date_of_birth",
+             "address", "postcode", "bank_name", "bank_branch", "sort_code", "account_number"]
 JUNK = re.compile(r"(^|/)(__MACOSX|\.DS_Store|\._[^/]*)($|/)")
 
 
@@ -39,6 +46,24 @@ def safe(text):
 
 def iso_date(value):
     return dt.date.fromisoformat(value)
+
+
+def excel_serial(day):
+    return (day - dt.date(1899, 12, 30)).days
+
+
+def load_me(path):
+    if not path.exists():
+        raise SystemExit(f"{path} not found. First run: copy examples/me.example.json there and fill it in.")
+    me = json.loads(path.read_text(encoding="utf-8"))
+    missing = [k for k in ME_FIELDS if not me.get(k)]
+    if missing:
+        raise SystemExit(f"{path} is missing: {', '.join(missing)}")
+    return me
+
+
+def full_name(me):
+    return f"{me['title']} {me['first_name']} {me['surname']}"
 
 
 def col_index(col):
@@ -57,7 +82,7 @@ def split_ref(ref):
 
 # ---------------------------------------------------------------- plan
 
-def plan_cells(claim, layout):
+def plan_cells(claim, me, layout):
     """Return {cell_ref: (kind, value)} for every cell the build touches."""
     edits = {}
     sections = layout["sections"]
@@ -72,12 +97,23 @@ def plan_cells(claim, layout):
     for ref in layout["clear"]:
         edits[ref] = ("clear", None)
 
-    # 2. Header fields.
-    edits[layout["purpose_cell"]] = ("str", claim["purpose"])
-    decl = claim.get("declaration")
-    if decl:  # only when the claimant has authorised signing
-        edits[layout["declaration"]["name"]] = ("str", decl["name"])
-        edits[layout["declaration"]["date"]] = ("str", decl["date"])
+    # 2. Claimant details and purpose, from me.json.
+    p = layout["personal"]
+    edits[p["full_name"]] = ("str", full_name(me))
+    cid = str(me["cid"])
+    edits[p["cid"]] = ("num", int(cid)) if cid.isdigit() and not cid.startswith("0") else ("str", cid)
+    edits[p["date_of_birth"]] = ("num", excel_serial(iso_date(me["date_of_birth"])))
+    lines = me["address"] if isinstance(me["address"], list) else [me["address"]]
+    if len(lines) > len(p["address"]):
+        raise SystemExit(f"Address has {len(lines)} lines; the form has room for {len(p['address'])}.")
+    for ref, line in zip(p["address"], lines):
+        edits[ref] = ("str", line)
+    for key in ("postcode", "bank_name", "bank_branch", "sort_code", "account_number"):
+        edits[p[key]] = ("str", str(me[key]))  # text keeps leading zeros
+    edits[layout["purpose_cell"]] = ("str", PURPOSE.format(surname=me["surname"]))
+    if claim.get("sign"):  # only when the claimant has said to sign
+        edits[layout["declaration"]["name"]] = ("str", full_name(me))
+        edits[layout["declaration"]["date"]] = ("num", excel_serial(dt.date.today()))
 
     # 3. Rows, in order, per section.
     used = {name: 0 for name in sections}
@@ -117,9 +153,9 @@ def receipt_name(surname, row, suffix=""):
     return f"{surname}_{d}_{safe(row['vendor'])}_{amount}{suffix}"
 
 
-def output_names(claim):
-    s = safe(claim["surname"])
-    c = re.sub(r"[^A-Za-z0-9]+", "_", claim["claim_name"]).strip("_")  # no dashes or symbols
+def output_names(me, claim):
+    s = safe(me["surname"])
+    c = "_".join(re.findall(r"[A-Za-z0-9]+", claim["claim"]))  # no dashes or symbols
     return f"{s}_E1_{c}.xlsx", f"{s}_{c}_receipts.zip"
 
 
@@ -186,12 +222,12 @@ def force_recalc(xml):
 
 def build_workbook(template, out, edits, sheet):
     if not zipfile.is_zipfile(template):
-        raise SystemExit("Template is not an .xlsx. Open the .xls in Microsoft Excel and "
-                         "Save As 'Excel Workbook (.xlsx)', then pass that file.")
+        raise SystemExit(f"{template} is not an .xlsx. Open the E1 .xls in Microsoft Excel and "
+                         "Save As 'Excel Workbook (.xlsx)' to that path.")
     with zipfile.ZipFile(template) as zin, zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zout:
         names = zin.namelist()
         if sheet not in names:
-            raise SystemExit(f"{sheet} not in template; set 'sheet' in the layout file.")
+            raise SystemExit(f"{sheet} not in {template}; is it the E1 form?")
         for info in zin.infolist():
             data = zin.read(info.filename)
             if info.filename == sheet:
@@ -237,8 +273,8 @@ def to_jpgs(src, stem, dest, base=Path(".")):
     return [target]
 
 
-def pack_receipts(claim, zip_path, workdir, base=Path(".")):
-    surname = safe(claim["surname"])
+def pack_receipts(surname, claim, zip_path, workdir, base=Path(".")):
+    surname = safe(surname)
     staging = workdir / "receipts"
     staging.mkdir(parents=True, exist_ok=True)
     for row in claim["rows"]:
@@ -257,51 +293,57 @@ def pack_receipts(claim, zip_path, workdir, base=Path(".")):
                 z.write(p, p.name)
 
 
-# ---------------------------------------------------------------- summary
+# ---------------------------------------------------------------- email
 
-def summary(claim, xlsx, zip_name):
-    total = sum(float(r["gbp"]) for r in claim["rows"])
-    lines = [f"Workbook: {xlsx}", f"Receipts: {zip_name}", f"Total: £{total:.2f}", ""]
-    for r in claim["rows"]:
-        line = f"- {r['date']} {r['vendor']}: £{float(r['gbp']):.2f}"
-        if r.get("currency", "GBP") != "GBP":
-            line += f" ({float(r['amount']):.2f} {r['currency']})"
-        lines.append(line)
-    fx = [r for r in claim["rows"] if r.get("currency", "GBP") != "GBP"]
+def email(me, claim, xlsx, zip_name):
+    rows = claim["rows"]
+    total = sum(float(r["gbp"]) for r in rows)
+    fx = [r for r in rows if r.get("currency", "GBP") != "GBP"]
+    notes = [r["note"] for r in rows if r.get("note")]
+    out = [f"To: {me['admin_email']}", f"Subject: {claim['claim']} expense claim", "",
+           "Hello,", "",
+           f"Please find attached my expense claim for {claim['claim']}: the E1 form ({xlsx}) "
+           f"and a ZIP of the matching receipts ({zip_name}).", "",
+           f"Total claimed: £{total:.2f}"]
     if fx:
-        lines += ["", f"FX basis: {claim.get('fx_source', 'MISSING: add fx_source before sending')}"]
-    return "\n".join(lines) + "\n"
+        out += ["", f"Exchange rates for each transaction date, from {claim.get('fx_source') or 'MISSING: set fx_source'}:"]
+        out += [f"- {iso_date(r['date']).strftime('%d/%m/%Y')} {r['vendor']}: "
+                f"{r['currency']} {float(r['amount']):.2f} = £{float(r['gbp']):.2f}" for r in fx]
+    if notes:
+        out += ["", "Notes:"] + [f"- {n}" for n in notes]
+    out += ["", "Best wishes,", me["first_name"]]
+    return "\n".join(out) + "\n"
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--template", required=True, help="the original E1 .xlsx from your administrator")
-    ap.add_argument("--claim", required=True, help="claim JSON (see examples/claim.example.json)")
-    ap.add_argument("--layout", default=str(DEFAULT_LAYOUT), help="cell layout JSON for the form")
-    ap.add_argument("--out-dir", default="out")
-    ap.add_argument("--dry-run", action="store_true", help="print the plan, write nothing")
+    ap.add_argument("claim", help="claim JSON (see examples/claim.example.json)")
+    ap.add_argument("--dry-run", action="store_true", help="print the plan and email, write nothing")
     args = ap.parse_args(argv)
 
-    claim = json.loads(Path(args.claim).read_text(encoding="utf-8"))
-    layout = json.loads(Path(args.layout).read_text(encoding="utf-8"))
-    edits = plan_cells(claim, layout)
-    xlsx_name, zip_name = output_names(claim)
+    claim_path = Path(args.claim).resolve()
+    claim = json.loads(claim_path.read_text(encoding="utf-8"))
+    me = load_me(CONFIG / "me.json")
+    layout = json.loads(LAYOUT.read_text(encoding="utf-8"))
+    edits = plan_cells(claim, me, layout)
+    xlsx_name, zip_name = output_names(me, claim)
+    body = email(me, claim, xlsx_name, zip_name)
 
     if args.dry_run:
         for ref, (kind, value) in sorted(edits.items(), key=lambda kv: (split_ref(kv[0])[1], col_index(split_ref(kv[0])[0]))):
-            if kind != "clear":
-                print(f"{ref:>5} {kind:7} {value}")
+            if kind not in ("clear", "formula"):
+                print(f"{ref:>5} {value}")
         for row in claim["rows"]:
-            print("receipt:", receipt_name(safe(claim["surname"]), row) + ".jpg")
-        print(summary(claim, xlsx_name, zip_name))
+            print("receipt:", receipt_name(safe(me["surname"]), row) + ".jpg")
+        print("\n" + body)
         return 0
 
-    out = Path(args.out_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    build_workbook(args.template, out / xlsx_name, edits, layout.get("sheet", "xl/worksheets/sheet1.xml"))
+    out = claim_path.parent / "out"
+    out.mkdir(exist_ok=True)
+    build_workbook(CONFIG / "E1.xlsx", out / xlsx_name, edits, layout["sheet"])
     with tempfile.TemporaryDirectory() as tmp:
-        pack_receipts(claim, out / zip_name, Path(tmp), Path(args.claim).resolve().parent)
-    (out / "summary.txt").write_text(summary(claim, xlsx_name, zip_name), encoding="utf-8")
+        pack_receipts(me["surname"], claim, out / zip_name, Path(tmp), claim_path.parent)
+    (out / "email.txt").write_text(body, encoding="utf-8")
 
     with zipfile.ZipFile(out / xlsx_name) as z:
         assert z.testzip() is None
@@ -310,8 +352,8 @@ def main(argv=None):
         print(f"{out / zip_name}:")
         for n in z.namelist():
             print("  ", n)
-    print(f"{out / xlsx_name}")
-    print((out / "summary.txt").read_text())
+    print(out / xlsx_name)
+    print("\n" + body)
     return 0
 
 

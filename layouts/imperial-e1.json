@@ -1,21 +1,63 @@
 {
-  "form": "Imperial College London Expense Claim E1 (v1.2 layout)",
+  "_comment": "Cell map of Imperial E1 (non-employees) v1.2: https://www.imperial.ac.uk/finance/financial-services/expenses/",
   "sheet": "xl/worksheets/sheet1.xml",
+  "personal": {
+    "full_name": "D3",
+    "cid": "D4",
+    "date_of_birth": "I5",
+    "address": [
+      "G7",
+      "G8",
+      "G9",
+      "G10"
+    ],
+    "postcode": "J10",
+    "bank_name": "M5",
+    "bank_branch": "M6",
+    "sort_code": "M7",
+    "account_number": "M9"
+  },
   "purpose_cell": "C6",
-  "declaration": {"name": "J63", "date": "N63"},
-  "clear": ["E20", "J20", "C62", "F62", "C66", "F66", "J63", "N63"],
+  "declaration": {
+    "name": "J63",
+    "date": "N63"
+  },
+  "clear": [
+    "E20",
+    "J20",
+    "C62",
+    "F62",
+    "C66",
+    "F66",
+    "J63",
+    "N63"
+  ],
   "sections": {
     "travel": {
       "first_row": 13,
       "last_row": 18,
-      "columns": {"date": "C", "mode": "D", "return": "E", "from": "F", "to": "G", "foreign": "I", "gbp": "J"},
+      "columns": {
+        "date": "C",
+        "mode": "D",
+        "return": "E",
+        "from": "F",
+        "to": "G",
+        "foreign": "I",
+        "gbp": "J"
+      },
       "formula_column": "L",
       "formula": "IF(ISERROR(VLOOKUP(D{r}&K{r},S$12:U$23,2,FALSE)),\"\",VLOOKUP(D{r}&K{r},S$12:U$23,2,FALSE))"
     },
     "other": {
       "first_row": 41,
       "last_row": 47,
-      "columns": {"date": "C", "type": "D", "description": "E", "foreign": "I", "gbp": "J"},
+      "columns": {
+        "date": "C",
+        "type": "D",
+        "description": "E",
+        "foreign": "I",
+        "gbp": "J"
+      },
       "formula_column": "L",
       "formula": "IF(AND(J{r}<>\"\",D{r}<>\"\"),VLOOKUP(IF(OR(D{r}=W$24,D{r}=W$21),D{r}&K{r},D{r}),S$37:T$103,2,FALSE),\"\")"
     }

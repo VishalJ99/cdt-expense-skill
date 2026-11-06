@@ -1,58 +1,34 @@
 # cdt-expense-skill
 
-An agent skill (Claude Code, Codex, OpenClaw or any Agent Skills runner) for students of Imperial's **UKRI AI4Health CDTs**: the CDT in AI for Healthcare and the AI CDT in Digital Healthcare. It handles conference approval requests and expense claims end to end, with the CDT's rules built in, so nobody has to dig out the guidance again.
-
-**What's built in**
-
-- `references/ai4health-guidance.md`: the 2025-26 AI4Health conference approval and expense guidance as 29 sourced rules. It covers approval, the £3,000 cap, eligible dates, taxis, no alcohol, itemised and translated receipts, JPGs in one ZIP per claim, surname-first filenames without dashes, purpose-of-claim wording, leaving cost centres to the administrator, FX, the post-trip report and UKRI acknowledgement. Each rule cites the guidance section or the administrator instruction it comes from.
-- `assets/AI4Health_conference_cost_estimate_template.xlsx`: the CDT's blank cost-estimate sheet for approval requests.
-- `scripts/build_claim.py`: fills Imperial's E1 form without breaking it, and packs receipts as `Surname_YYYYMMDD_Vendor_12.34EUR.jpg` in one ZIP.
-- `SKILL.md`: the agent's procedure. It finds the trip's mail, reconciles, applies the rules, builds, checks in Excel, drafts, and sends only after you approve.
-
-The guidance is reissued each year. If the CDT sends a newer edition, or the administrator tells you something different, that wins over the bundled file. PRs updating `references/ai4health-guidance.md` are welcome.
+Your agent handles AI4Health CDT conference approvals and expense claims end to end: it follows the CDT's rules, fills the E1 form, builds the receipts ZIP, drafts the email to the CDT administrator, and sends it once you approve.
 
 ## Install
-
-Claude Code:
 
 ```sh
 git clone https://github.com/VishalJ99/cdt-expense-skill ~/.claude/skills/cdt-expense
 ```
 
-Other agents: clone it into that agent's skills directory (e.g. `~/.codex/skills/cdt-expense`), or use `npx skills add VishalJ99/cdt-expense-skill`.
+## First run
 
-Then ask your agent something like *"claim my MICCAI expenses from the receipts in my mail"* or *"help me request approval for ICML"*.
+Your agent asks once for:
 
-## Requirements
+- your surname and the personal details the E1 needs: name, CID, date of birth, address and bank details;
+- your Imperial email, used to sign in to your mail;
+- the CDT administrator's email. It isn't on any public Imperial page (the public ai4health@ address is for general enquiries), so it isn't in this repo. You'll find it on the CDT's conference-guidance email.
 
-- Python 3.9+ (standard library only)
-- [poppler](https://poppler.freedesktop.org/) for `pdftoppm`: `brew install poppler` or `apt install poppler-utils`
-- [Surface CLI](https://github.com/VishalJ99/surface-cli) for Imperial Outlook mail. Install it with `npm install -g surface-cli` and `surface skill install claude-code` (or `codex` / `all`; on OpenClaw, `openclaw skills install surface-cli`). Then run `surface account add uni --provider outlook --email <you>@imperial.ac.uk` and `surface auth login uni`, which opens Chrome for the usual Imperial sign-in (no Azure or app passwords). The skill's Step 0 checks this and walks your agent through it. See Surface's README for more.
-- Microsoft Excel, for the Save As step and the final check
-- **The E1 form is not bundled.** Use the `.xlsx` the CDT administrator last sent you. Otherwise download Imperial's [E1 for non-employees](https://www.imperial.ac.uk/media/imperial-college/administration-and-support-services/finance/public/E1-Non-employee-expense-form.xls) from the [Finance expenses page](https://www.imperial.ac.uk/finance/financial-services/expenses/), open it in Excel and *Save As .xlsx*.
-- The administrator's email address, entered once at setup. The repo contains no staff names or addresses.
+These are saved to `~/.config/cdt-expense/me.json` on your machine only. The agent also:
 
-## The builder on its own
+- downloads the E1 for you to save once as `.xlsx` in Excel;
+- installs the [Surface](https://github.com/VishalJ99/surface-cli) mail CLI and signs you in through the normal Imperial login in Chrome.
 
-```sh
-python3 scripts/build_claim.py --template E1.xlsx --claim examples/claim.example.json --dry-run
-python3 scripts/build_claim.py --template E1.xlsx --claim my-claim.json --out-dir out
-```
+You need Python 3, Node, Microsoft Excel and poppler (`brew install poppler`).
 
-It writes `out/Surname_E1_<claim>.xlsx`, `out/Surname_<claim>_receipts.zip` and `out/summary.txt` (total and FX lines for the email).
+## Use
 
-Why it edits XML rather than using openpyxl: re-saving the form drops data validation, compatibility namespaces and lookup formulas, and administrators have rejected forms because of it. The script changes only the mapped cells and restores the analysis-code formulas. It also clears every cached total and makes Excel recalculate on open.
+Ask your agent, for example:
 
-Cell positions live in `layouts/imperial-e1.json`. Edit that file for a different form version.
+- "Claim my MICCAI 2026 expenses"
+- "Request approval for ICML"
+- "Can I claim a taxi from the airport?"
 
-## Tests
-
-```sh
-python3 -m unittest discover -s tests -v
-```
-
-The tests use a synthetic stand-in workbook and generated dummy receipts; no real data.
-
-## Licence
-
-MIT
+The rules it follows are in [`references/ai4health-guidance.md`](references/ai4health-guidance.md) (2025-26 guidance).

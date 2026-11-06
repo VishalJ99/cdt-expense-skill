@@ -1,0 +1,18 @@
+{
+  "title": "Ms",
+  "first_name": "Jane",
+  "surname": "Doe",
+  "imperial_email": "jd123@example.ac.uk",
+  "admin_email": "cdt-admin@example.ac.uk",
+  "cid": "00000000",
+  "date_of_birth": "1999-01-31",
+  "address": [
+    "1 Example Road",
+    "London"
+  ],
+  "postcode": "SW1A 0AA",
+  "bank_name": "Example Bank",
+  "bank_branch": "London",
+  "sort_code": "00-00-00",
+  "account_number": "00000000"
+}

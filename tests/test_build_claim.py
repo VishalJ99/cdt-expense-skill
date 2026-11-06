@@ -34,7 +34,7 @@ def fake_template(path):
         62: '<c r="C62" t="inlineStr"><is><t>Approver, A</t></is></c><c r="F62"><v>46267</v></c>',
         63: '<c r="J63" t="inlineStr"><is><t>Old Claimant</t></is></c><c r="N63"><v>46266</v></c>',
     }
-    for r in list(range(14, 19)) + list(range(43, 48)) + [66]:
+    for r in [3, 4, 5, 7, 8, 9, 10] + list(range(14, 19)) + list(range(43, 48)) + [66]:
         rows.setdefault(r, "")
     body = "".join(f'<row r="{r}">{c}</row>' if c else f'<row r="{r}"/>' for r, c in sorted(rows.items()))
     sheet = f'<?xml version="1.0" encoding="UTF-8"?><worksheet {NS} {MC}><sheetData>{body}</sheetData></worksheet>'
@@ -68,7 +68,11 @@ class BuildClaimTest(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
         (self.tmp / "receipts").mkdir()
-        fake_template(self.tmp / "E1.xlsx")
+        config = self.tmp / "config"
+        config.mkdir()
+        fake_template(config / "E1.xlsx")
+        shutil.copyfile(ROOT / "examples" / "me.example.json", config / "me.json")
+        build_claim.CONFIG = config
         fake_pdf(self.tmp / "receipts" / "rail.pdf")
         fake_pdf(self.tmp / "receipts" / "hotel.pdf", pages=2)
         subprocess.run(["pdftoppm", "-jpeg", "-singlefile", str(self.tmp / "receipts" / "rail.pdf"),
@@ -78,12 +82,11 @@ class BuildClaimTest(unittest.TestCase):
                               "vendor": "Hotel Example", "amount": "80", "currency": "EUR", "gbp": 68.9,
                               "receipt": "receipts/hotel.pdf"})
         (self.tmp / "claim.json").write_text(json.dumps(claim))
-        build_claim.main(["--template", str(self.tmp / "E1.xlsx"), "--claim", str(self.tmp / "claim.json"),
-                          "--out-dir", str(self.tmp / "out")])
+        build_claim.main([str(self.tmp / "claim.json")])
         self.out = self.tmp / "out"
 
     def sheet(self):
-        with zipfile.ZipFile(self.out / "Doe_E1_ExampleConf2026_posttrip.xlsx") as z:
+        with zipfile.ZipFile(self.out / "Doe_E1_ExampleConf_2026_post_trip.xlsx") as z:
             return z.read("xl/worksheets/sheet1.xml").decode(), z.read("xl/workbook.xml").decode()
 
     def cell(self, xml, ref):
@@ -92,7 +95,12 @@ class BuildClaimTest(unittest.TestCase):
 
     def test_values_written_and_old_values_gone(self):
         xml, _ = self.sheet()
-        self.assertIn("Doe- Example CDT-Conference expenses", self.cell(xml, "C6"))
+        self.assertIn("Doe- AI4Health CDT-Conference expenses", self.cell(xml, "C6"))
+        self.assertIn("Ms Jane Doe", self.cell(xml, "D3"))
+        self.assertIn("<v>36191</v>", self.cell(xml, "I5"))  # 1999-01-31 as an Excel date
+        self.assertIn("00000000</t>", self.cell(xml, "M9"))  # account number kept as text
+        self.assertIn("SW1A 0AA", self.cell(xml, "J10"))
+        self.assertNotIn("Ms Jane Doe", self.cell(xml, "J63"))  # not signed unless asked
         self.assertIn("26/09/2026", self.cell(xml, "C41"))
         self.assertIn('s="3"', self.cell(xml, "C41"))  # style kept
         self.assertIn("<v>18.7</v>", self.cell(xml, "J41"))
@@ -121,7 +129,7 @@ class BuildClaimTest(unittest.TestCase):
         self.assertNotIn('calcMode="manual"', wb)
 
     def test_receipts_zip(self):
-        with zipfile.ZipFile(self.out / "Doe_ExampleConf2026_posttrip_receipts.zip") as z:
+        with zipfile.ZipFile(self.out / "Doe_ExampleConf_2026_post_trip_receipts.zip") as z:
             names = sorted(z.namelist())
         self.assertEqual(names, [
             "Doe_20260925_ExampleRail_120.50GBP.jpg",
@@ -131,10 +139,14 @@ class BuildClaimTest(unittest.TestCase):
             "Doe_20260927_HotelExample_80.00EUR_p2.jpg",
         ])
 
-    def test_summary(self):
-        text = (self.out / "summary.txt").read_text()
-        self.assertIn("Total: £208.10", text)
-        self.assertIn("FX basis: ECB", text)
+    def test_email(self):
+        text = (self.out / "email.txt").read_text()
+        self.assertIn("To: cdt-admin@example.ac.uk", text)
+        self.assertIn("Subject: ExampleConf 2026 post trip expense claim", text)
+        self.assertIn("Total claimed: £208.10", text)
+        self.assertIn("EUR 21.80 = £18.70", text)
+        self.assertIn("tip excluded", text)
+        self.assertTrue(text.rstrip().endswith("Jane"))
 
 
 class PlanTest(unittest.TestCase):
@@ -142,7 +154,8 @@ class PlanTest(unittest.TestCase):
         layout = json.loads((ROOT / "layouts" / "imperial-e1.json").read_text())
         row = {"date": "2026-01-01", "type": "X", "vendor": "V", "amount": "1", "gbp": 1}
         with self.assertRaises(SystemExit) as e:
-            build_claim.plan_cells({"purpose": "p", "rows": [row] * 8}, layout)
+            me = json.loads((ROOT / "examples" / "me.example.json").read_text())
+            build_claim.plan_cells({"claim": "c", "rows": [row] * 8}, me, layout)
         self.assertIn("second claim", str(e.exception))
 
 
