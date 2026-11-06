@@ -1,0 +1,11 @@
+out/
+*.xlsx
+*.xls
+*.zip
+*.pdf
+*.jpg
+*.jpeg
+*.png
+claim.json
+__pycache__/
+.DS_Store

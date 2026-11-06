@@ -1,0 +1,31 @@
+{
+  "surname": "Doe",
+  "claim_name": "ExampleConf2026_posttrip",
+  "purpose": "Doe- Example CDT-Conference expenses",
+  "fx_source": "ECB euro reference rates (GBP per EUR) for each transaction date, https://data.ecb.europa.eu/data/datasets/EXR/EXR.D.GBP.EUR.SP00.A",
+  "rows": [
+    {
+      "section": "travel",
+      "date": "2026-09-25",
+      "mode": "Rail",
+      "from": "London",
+      "to": "Exampleville",
+      "vendor": "Example Rail",
+      "amount": "120.50",
+      "currency": "GBP",
+      "gbp": 120.50,
+      "receipt": "receipts/rail.pdf"
+    },
+    {
+      "date": "2026-09-26",
+      "type": "HOTEL / SUBSISTENCE",
+      "description": "Dinner, one person",
+      "vendor": "Cafe Example",
+      "amount": "21.80",
+      "currency": "EUR",
+      "gbp": 18.70,
+      "receipt": "receipts/dinner.jpg",
+      "translation": "Cafe Example, 1 Example Street. 26 September 2026. One main course EUR 14.80, one soft drink EUR 7.00. Total EUR 21.80, paid by card."
+    }
+  ]
+}
