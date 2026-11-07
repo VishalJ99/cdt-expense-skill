@@ -50,4 +50,3 @@ Copy `SKILL/assets/AI4Health_conference_cost_estimate_template.xlsx` and fill it
      --attach out/<workbook>.xlsx --attach out/<receipts>.zip
    ```
    Then confirm it is in Sent Items: `surface mail search --account uni --mailbox "Sent Items" --subject "<subject>"`.
-7. **After the trip.** Remind the student to email the CDT a short conference report (rule 28) and to cite the UKRI grant (rule 29).
